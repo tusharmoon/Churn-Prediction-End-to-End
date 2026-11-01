@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telco Customer Churn Prediction & Retention Platform</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-3 md:mb-0">
+                <div class="bg-rose-600 p-2.5 rounded-xl shadow-inner">
+                    <i class="fa-solid fa-user-slash text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Telco Churn Intelligence</h1>
+                    <p class="text-xs text-rose-300">Supervised Classification & Retention Platform</p>
+                </div>
+            </div>
+            <nav class="flex space-x-1.5 bg-slate-950 p-1 rounded-xl">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3.5 py-2 rounded-lg text-xs font-semibold transition bg-rose-600 text-white shadow">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Executive BI & ML
+                </button>
+                <button onclick="switchTab('segments')" id="nav-segments" class="px-3.5 py-2 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-table-cells mr-1"></i> Churn Risk Analysis
+                </button>
+                <button onclick="switchTab('predictor')" id="nav-predictor" class="px-3.5 py-2 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Churn Predictor
+                </button>
+                <button onclick="switchTab('upload')" id="nav-upload" class="px-3.5 py-2 rounded-lg text-xs font-semibold transition text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Data Pipeline
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full space-y-6">
+
+        <!-- TAB 1: EXECUTIVE DASHBOARD & ML ANALYSIS -->
+        <section id="tab-dashboard" class="space-y-6">
+            <div class="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-center">
+                <div class="space-y-2 mb-4 md:mb-0">
+                    <span class="bg-rose-500/30 text-rose-200 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Supervised Random Forest Classification</span>
+                    <h2 class="text-2xl font-bold">Customer Churn Prediction & ML Intelligence</h2>
+                    <p class="text-slate-300 text-sm max-w-2xl">Real-time classification analytics evaluating telecom subscriber risk factors, ROC-AUC validation scores, and top predictive feature importances.</p>
+                </div>
+                <div class="bg-slate-950/70 p-4 rounded-xl border border-rose-500/30 font-mono text-xs space-y-1.5">
+                    <div class="text-rose-300 font-bold border-b border-rose-500/20 pb-1">Model Performance Metrics</div>
+                    <div>ROC-AUC Score: <span id="metric-auc" class="text-white font-bold">--</span></div>
+                    <div>Precision / Recall: <span id="metric-prec" class="text-white font-bold">--</span></div>
+                    <div>F1-Score: <span id="metric-f1" class="text-white font-bold">--</span></div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="bg-blue-50 text-blue-600 p-4 rounded-xl text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Customers</p>
+                        <h3 id="kpi-customers" class="text-2xl font-bold text-slate-800">--</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="bg-rose-50 text-rose-600 p-4 rounded-xl text-xl">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Churned Customers</p>
+                        <h3 id="kpi-churned" class="text-2xl font-bold text-slate-800">--</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="bg-amber-50 text-amber-600 p-4 rounded-xl text-xl">
+                        <i class="fa-solid fa-percent"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Overall Churn Rate</p>
+                        <h3 id="kpi-rate" class="text-2xl font-bold text-slate-800">--</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="bg-emerald-50 text-emerald-600 p-4 rounded-xl text-xl">
+                        <i class="fa-solid fa-shield-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Retained Rate</p>
+                        <h3 id="kpi-retained" class="text-2xl font-bold text-slate-800">--</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML Analysis & Feature Importance Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Feature Importance List -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1 space-y-4">
+                    <h3 class="font-bold text-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-brain text-rose-600"></i>
+                        <span>Top Churn Drivers (Feature Importance)</span>
+                    </h3>
+                    <p class="text-xs text-slate-500">Random Forest weights indicating which factors most strongly predict customer defection:</p>
+                    <div id="feature-importance-list" class="space-y-3 pt-2">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Confusion Matrix Breakdown -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 space-y-4">
+                    <h3 class="font-bold text-slate-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-square-poll-vertical text-rose-600"></i>
+                        <span>Model Classification Matrix (Confusion Matrix)</span>
+                    </h3>
+                    <p class="text-xs text-slate-500">Evaluation on test split verifying true vs. predicted churn classifications:</p>
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl text-center">
+                            <span class="text-xs font-bold uppercase text-emerald-800 block">True Negatives (Correctly Retained)</span>
+                            <span id="cm-tn" class="text-2xl font-bold text-emerald-900">--</span>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl text-center">
+                            <span class="text-xs font-bold uppercase text-rose-800 block">True Positives (Correctly Flagged Churn)</span>
+                            <span id="cm-tp" class="text-2xl font-bold text-rose-900">--</span>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl text-center">
+                            <span class="text-xs font-bold uppercase text-amber-800 block">False Positives (Type I Error)</span>
+                            <span id="cm-fp" class="text-2xl font-bold text-amber-900">--</span>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl text-center">
+                            <span class="text-xs font-bold uppercase text-blue-800 block">False Negatives (Type II Error)</span>
+                            <span id="cm-fn" class="text-2xl font-bold text-blue-900">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-chart-pie text-rose-600"></i>
+                        <span>Contract Distribution</span>
+                    </h3>
+                    <div class="relative h-72 flex justify-center items-center">
+                        <canvas id="contractPieChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-chart-column text-rose-600"></i>
+                        <span>Internet Service Distribution</span>
+                    </h3>
+                    <div class="relative h-72 flex justify-center items-center">
+                        <canvas id="internetBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: CHURN RISK ANALYSIS -->
+        <section id="tab-segments" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-1">Churn Risk Analysis by Segment</h2>
+                <p class="text-sm text-slate-500">Examine how contract types and payment methods drive customer defection.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800">Contract Type Churn Comparison</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                                <th class="py-3 px-6">Contract Type</th>
+                                <th class="py-3 px-6">Total Customers</th>
+                                <th class="py-3 px-6">Churned Customers</th>
+                                <th class="py-3 px-6">Churn Rate (%)</th>
+                                <th class="py-3 px-6">Avg Monthly Charges ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contract-table-body" class="divide-y divide-slate-100 text-sm text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800">Payment Method Churn Comparison</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider">
+                                <th class="py-3 px-6">Payment Method</th>
+                                <th class="py-3 px-6">Total Customers</th>
+                                <th class="py-3 px-6">Churned Customers</th>
+                                <th class="py-3 px-6">Churn Rate (%)</th>
+                                <th class="py-3 px-6">Avg Monthly Charges ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-table-body" class="divide-y divide-slate-100 text-sm text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CUSTOMER CHURN PREDICTOR -->
+        <section id="tab-predictor" class="space-y-6 hidden">
+            <div class="bg-slate-900 p-6 rounded-2xl text-white shadow-lg">
+                <h2 class="text-xl font-bold">Individual Customer Churn Predictor</h2>
+                <p class="text-slate-300 text-sm">Input customer profile parameters to run real-time churn risk classification.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                        <i class="fa-solid fa-sliders text-rose-600"></i>
+                        <span>Customer Profile</span>
+                    </h3>
+                    <form id="churn-form" onsubmit="handlePredictChurn(event)" class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Customer ID</label>
+                            <input type="text" id="p-id" value="CUST-9999" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Tenure (Months)</label>
+                                <input type="number" id="p-tenure" value="2" min="1" max="72" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Monthly Charges ($)</label>
+                                <input type="number" id="p-monthly" value="89.50" step="0.01" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Contract Type</label>
+                            <select id="p-contract" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                <option value="Month-to-month">Month-to-month</option>
+                                <option value="One year">One year</option>
+                                <option value="Two year">Two year</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Internet Service</label>
+                            <select id="p-internet" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                <option value="Fiber optic">Fiber optic</option>
+                                <option value="DSL">DSL</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Payment Method</label>
+                            <select id="p-payment" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                <option value="Electronic check">Electronic check</option>
+                                <option value="Mailed check">Mailed check</option>
+                                <option value="Bank transfer (automatic)">Bank transfer (automatic)</option>
+                                <option value="Credit card (automatic)">Credit card (automatic)</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Tech Support</label>
+                                <select id="p-tech" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                    <option value="No">No</option>
+                                    <option value="Yes">Yes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Paperless Billing</label>
+                                <select id="p-paperless" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2">
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 rounded-xl shadow transition mt-2">
+                            Classify Churn Risk
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-bullseye text-rose-600"></i>
+                            <span>Classification Results</span>
+                        </h3>
+                        
+                        <div id="predictor-placeholder" class="py-16 text-center text-slate-400">
+                            <i class="fa-solid fa-user-shield text-4xl mb-3 text-slate-300"></i>
+                            <p class="text-sm">Submit customer parameters on the left to evaluate churn probability.</p>
+                        </div>
+
+                        <div id="predictor-result" class="hidden space-y-6">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
+                                <div>
+                                    <span class="text-slate-400 block font-semibold">CUSTOMER ID</span>
+                                    <span id="res-cid" class="font-bold text-slate-800 text-sm">--</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block font-semibold">TENURE</span>
+                                    <span id="res-tenure" class="font-bold text-slate-800 text-sm">--</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block font-semibold">CHURN PROBABILITY</span>
+                                    <span id="res-prob" class="font-bold text-rose-600 text-sm">--</span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block font-semibold">RISK ASSESSMENT</span>
+                                    <span id="res-risk" class="font-bold text-amber-700 text-sm">--</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                                    <h4 class="text-xs font-bold uppercase text-blue-800 mb-1">Model Explanation</h4>
+                                    <p id="res-explanation" class="text-xs text-blue-950">--</p>
+                                </div>
+                                <div class="bg-rose-50 border border-rose-100 p-4 rounded-xl">
+                                    <h4 class="text-xs font-bold uppercase text-rose-800 mb-1">Recommended Retention Playbook</h4>
+                                    <p id="res-strategy" class="text-xs text-rose-950">--</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: DATA PIPELINE -->
+        <section id="tab-upload" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-1">Dataset Management & Retraining</h2>
+                <p class="text-sm text-slate-500">Upload custom Telco churn CSV datasets to retrain the Random Forest classifier.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-file-arrow-up text-rose-600"></i>
+                            <span>Upload Churn CSV Dataset</span>
+                        </h3>
+                        <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 relative cursor-pointer">
+                            <input type="file" id="csv-file-input" accept=".csv" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileSelected(event)">
+                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-rose-600 mb-2"></i>
+                            <div id="file-name-display" class="text-sm font-medium text-slate-700">Click to select CSV file</div>
+                        </div>
+                    </div>
+                    <button onclick="uploadDataset()" class="mt-6 w-full bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 rounded-xl shadow transition">
+                        Retrain Churn Classifier
+                    </button>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-3 flex items-center space-x-2">
+                        <i class="fa-solid fa-database text-rose-600"></i>
+                        <span>Active Dataset Info</span>
+                    </h3>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">File Name:</span><span class="font-mono text-slate-700">WA_Fn-UseC_-Telco-Customer-Churn.csv</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Dataset Records:</span><span class="font-semibold text-slate-700">2,000 customers</span></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Target Column:</span><span class="font-semibold text-slate-700">Churn (Yes / No)</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Controller -->
+    <script>
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadDashboardData();
+        });
+
+        function switchTab(tabId) {
+            ['dashboard', 'segments', 'predictor', 'upload'].forEach(id => {
+                document.getElementById(`tab-${id}`).classList.add('hidden');
+                document.getElementById(`nav-${id}`).classList.remove('bg-rose-600', 'text-white', 'shadow');
+                document.getElementById(`nav-${id}`).classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).classList.add('bg-rose-600', 'text-white', 'shadow');
+            document.getElementById(`nav-${tabId}`).classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+
+            if (tabId === 'segments') loadSegmentsView();
+        }
+
+        async function loadDashboardData() {
+            try {
+                const res = await fetch('/api/summary');
+                const data = await res.json();
+
+                const ins = data.insights;
+                document.getElementById('kpi-customers').innerText = ins.total_customers.toLocaleString();
+                document.getElementById('kpi-churned').innerText = ins.churned_customers.toLocaleString();
+                document.getElementById('kpi-rate').innerText = ins.churn_rate + '%';
+                document.getElementById('kpi-retained').innerText = (100 - ins.churn_rate).toFixed(1) + '%';
+
+                const m = data.model_metrics;
+                document.getElementById('metric-auc').innerText = m.roc_auc;
+                document.getElementById('metric-prec').innerText = `${m.precision} / ${m.recall}`;
+                document.getElementById('metric-f1').innerText = m.f1_score;
+
+                // Confusion Matrix
+                if (m.confusion_matrix && m.confusion_matrix.length === 2) {
+                    document.getElementById('cm-tn').innerText = m.confusion_matrix[0][0];
+                    document.getElementById('cm-fp').innerText = m.confusion_matrix[0][1];
+                    document.getElementById('cm-fn').innerText = m.confusion_matrix[1][0];
+                    document.getElementById('cm-tp').innerText = m.confusion_matrix[1][1];
+                }
+
+                // Feature Importances
+                const fList = document.getElementById('feature-importance-list');
+                fList.innerHTML = '';
+                if (ins.feature_importances) {
+                    ins.feature_importances.forEach(item => {
+                        const pct = (item.importance * 100).toFixed(1);
+                        fList.innerHTML += `
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="text-slate-700">${item.feature}</span>
+                                    <span class="text-rose-600 font-mono">${pct}%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                    <div class="bg-rose-600 h-full rounded-full" style="width: ${Math.min(100, pct * 2.5)}%;"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                renderCharts(data.contract_counts, data.internet_counts);
+            } catch (err) {
+                console.error("Error loading dashboard:", err);
+            }
+        }
+
+        function renderCharts(contractCounts, internetCounts) {
+            const ctxPie = document.getElementById('contractPieChart').getContext('2d');
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(contractCounts),
+                    datasets: [{ data: Object.values(contractCounts), backgroundColor: ['#e11d48', '#0284c7', '#0d9488'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctxBar = document.getElementById('internetBarChart').getContext('2d');
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(internetCounts),
+                    datasets: [{ label: 'Customer Count', data: Object.values(internetCounts), backgroundColor: '#e11d48', borderRadius: 8 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        async function loadSegmentsView() {
+            const res = await fetch('/api/segments');
+            const data = await res.json();
+
+            const cBody = document.getElementById('contract-table-body');
+            cBody.innerHTML = '';
+            data.contract_stats.forEach(s => {
+                cBody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-6 font-bold text-slate-800">${s.dimension}</td>
+                        <td class="py-3 px-6">${s.total.toLocaleString()}</td>
+                        <td class="py-3 px-6">${s.churned.toLocaleString()}</td>
+                        <td class="py-3 px-6"><span class="bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full text-xs font-bold">${s.churn_rate}%</span></td>
+                        <td class="py-3 px-6 font-mono text-emerald-600">$${s.avg_monthly_charges}</td>
+                    </tr>
+                `;
+            });
+
+            const pBody = document.getElementById('payment-table-body');
+            pBody.innerHTML = '';
+            data.payment_stats.forEach(s => {
+                pBody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-6 font-bold text-slate-800">${s.dimension}</td>
+                        <td class="py-3 px-6">${s.total.toLocaleString()}</td>
+                        <td class="py-3 px-6">${s.churned.toLocaleString()}</td>
+                        <td class="py-3 px-6"><span class="bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full text-xs font-bold">${s.churn_rate}%</span></td>
+                        <td class="py-3 px-6 font-mono text-emerald-600">$${s.avg_monthly_charges}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function handlePredictChurn(e) {
+            e.preventDefault();
+            const payload = {
+                customerID: document.getElementById('p-id').value,
+                tenure: parseInt(document.getElementById('p-tenure').value),
+                MonthlyCharges: parseFloat(document.getElementById('p-monthly').value),
+                Contract: document.getElementById('p-contract').value,
+                InternetService: document.getElementById('p-internet').value,
+                PaymentMethod: document.getElementById('p-payment').value,
+                TechSupport: document.getElementById('p-tech').value,
+                PaperlessBilling: document.getElementById('p-paperless').value
+            };
+
+            try {
+                const res = await fetch('/api/predict-churn', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                document.getElementById('predictor-placeholder').classList.add('hidden');
+                document.getElementById('predictor-result').classList.remove('hidden');
+
+                document.getElementById('res-cid').innerText = data.customerID;
+                document.getElementById('res-tenure').innerText = data.tenure + ' mos';
+                document.getElementById('res-prob').innerText = data.churn_probability_pct + '%';
+                document.getElementById('res-risk').innerText = data.risk_level;
+                document.getElementById('res-explanation').innerText = data.explanation;
+                document.getElementById('res-strategy').innerText = data.strategy;
+            } catch (err) {
+                alert("Error predicting churn: " + err);
+            }
+        }
+
+        function handleFileSelected(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('file-name-display').innerText = file.name;
+            }
+        }
+
+        async function uploadDataset() {
+            const fileInput = document.getElementById('csv-file-input');
+            if (!fileInput.files[0]) {
+                alert("Please select a CSV file first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message);
+                    loadDashboardData();
+                    switchTab('dashboard');
+                } else {
+                    alert("Error: " + data.detail);
+                }
+            } catch (err) {
+                alert("Upload failed: " + err);
+            }
+        }
+    </script>
+</body>
+</html>
